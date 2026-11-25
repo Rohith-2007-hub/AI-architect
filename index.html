@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeBrief — Pre-Architect Planning &amp; 2D Floor Plan Generator</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+  <script src="js/plotEditor.js" defer></script>
+  <script src="js/layoutEngine.js" defer></script>
+  <script src="js/planRenderer.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="app-header">
+    <div class="container header-content">
+      <div class="logo">
+        <svg class="logo-svg" viewBox="0 0 28 28" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12L14 3l11 9"></path>
+          <path d="M6 10v14h16V10"></path>
+          <rect x="11" y="16" width="6" height="8"></rect>
+        </svg>
+        <span class="logo-text">HomeBrief</span>
+      </div>
+      <p class="tagline">Pre-Architect Planning &amp; 2D Floor Plan Generator</p>
+    </div>
+  </header>
+
+  <!-- ===== STEP INDICATOR BAR ===== -->
+  <nav class="step-indicator" aria-label="Planning Steps">
+    <div class="step-item active" data-step="1">
+      <div class="step-number">1</div>
+      <span class="step-label">1. Land Details</span>
+    </div>
+    <div class="step-item" data-step="2">
+      <div class="step-number">2</div>
+      <span class="step-label">2. Match Plot Shape</span>
+    </div>
+    <div class="step-item" data-step="3">
+      <div class="step-number">3</div>
+      <span class="step-label">3. 2D Floor Plan</span>
+    </div>
+  </nav>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="container main-content">
+
+    <!-- ======================================================= -->
+    <!-- STEP 1: Land & Space Requirements                       -->
+    <!-- ======================================================= -->
+    <section id="step-1" class="step-container fade-in">
+      <div class="step-1-grid">
+
+        <!-- Land Area -->
+        <div class="form-card" id="card-land-area">
+          <h3>Land Area</h3>
+          <div class="input-row">
+            <input type="text" inputmode="decimal" id="land-area" value="5" placeholder="e.g. 5" aria-label="Land Area">
+            <select id="land-unit" aria-label="Land Area Unit">
+              <option value="cents" selected>Cents</option>
+              <option value="sqft">Sq.Ft</option>
+              <option value="sqyards">Sq.Yards</option>
+            </select>
+          </div>
+          <p class="area-conversion" id="area-conversion">= 2,178 Sq.Ft (1 Cent = 435.6 Sq.Ft)</p>
+          <p class="error-message hidden" id="land-area-error">Please enter a valid positive land area (minimum 600 Sq.Ft).</p>
+        </div>
+
+        <!-- Road Facing -->
+        <div class="form-card">
+          <h3>Road Facing</h3>
+          <div id="road-facing-group" class="option-group four-col">
+            <button type="button" class="option-btn active" data-value="east">East</button>
+            <button type="button" class="option-btn" data-value="west">West</button>
+            <button type="button" class="option-btn" data-value="north">North</button>
+            <button type="button" class="option-btn" data-value="south">South</button>
+          </div>
+          <div class="corner-toggle-wrap">
+            <label class="toggle-container" for="corner-plot">
+              <input type="checkbox" id="corner-plot">
+              <span class="toggle-switch"></span>
+              <span class="toggle-label">Corner Plot (2-Side Road)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Building Type Dropdown -->
+        <div class="form-card">
+          <h3><label for="building-type" class="card-heading-label">Building Type</label></h3>
+          <select id="building-type" aria-label="Building Type">
+            <option value="independent" selected>Independent House</option>
+            <option value="duplex">Duplex House</option>
+            <option value="villa">Luxury Villa</option>
+            <option value="commercial_residential">Commercial + Residential</option>
+            <option value="rental_apartments">Rental Apartments (Multi-Unit)</option>
+          </select>
+          <p class="helper-text" id="building-type-hint">Single-family home with front porch, open/formal living, and rear bedrooms.</p>
+        </div>
+
+        <!-- Floors -->
+        <div class="form-card">
+          <h3>Floors</h3>
+          <div id="floors-group" class="option-group three-col">
+            <button type="button" class="option-btn" data-value="G">Ground Only (G)</button>
+            <button type="button" class="option-btn active" data-value="G+1">G+1</button>
+            <button type="button" class="option-btn" data-value="G+2">G+2</button>
+          </div>
+        </div>
+
+        <!-- Configuration -->
+        <div class="form-card">
+          <h3>Configuration</h3>
+          <div id="config-group" class="option-group three-col">
+            <button type="button" class="option-btn" data-value="2BHK">2BHK</button>
+            <button type="button" class="option-btn active" data-value="3BHK">3BHK</button>
+            <button type="button" class="option-btn" data-value="4BHK">4BHK</button>
+          </div>
+        </div>
+
+        <!-- Parking -->
+        <div class="form-card">
+          <h3>Parking</h3>
+          <div id="parking-group" class="option-group three-col">
+            <button type="button" class="option-btn" data-value="bikes">Bikes Only</button>
+            <button type="button" class="option-btn active" data-value="1car">1 Car</button>
+            <button type="button" class="option-btn" data-value="2cars">2 Cars</button>
+          </div>
+        </div>
+
+        <!-- Budget Tier -->
+        <div class="form-card step-1-span-2">
+          <h3>Budget Tier</h3>
+          <div id="budget-group" class="option-group three-col">
+            <button type="button" class="option-btn tier-btn" data-value="basic">
+              <span class="tier-name">Basic</span>
+              <span class="tier-rate">₹1,800/sqft</span>
+            </button>
+            <button type="button" class="option-btn tier-btn active" data-value="standard">
+              <span class="tier-name">Standard</span>
+              <span class="tier-rate">₹2,100/sqft</span>
+            </button>
+            <button type="button" class="option-btn tier-btn" data-value="premium">
+              <span class="tier-name">Premium</span>
+              <span class="tier-rate">₹2,600/sqft</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="step-cta-wrap">
+        <button type="button" id="btn-to-step2" class="btn-primary">Next: Adjust Your Plot Shape →</button>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- STEP 2: Interactive Plot Shape & Area Matcher           -->
+    <!-- ======================================================= -->
+    <section id="step-2" class="step-container hidden fade-in">
+      <button type="button" class="btn-back" data-goto="1">← Back to Land Details</button>
+
+      <!-- Shape Presets -->
+      <div class="form-card">
+        <h3>Quick Shape Presets</h3>
+        <div class="preset-buttons">
+          <button type="button" id="preset-square" class="preset-btn" data-preset="square">Square (1:1)</button>
+          <button type="button" id="preset-rectangle" class="preset-btn active" data-preset="rectangle">Standard Rectangle (2:3)</button>
+          <button type="button" id="preset-deep" class="preset-btn" data-preset="deep">Deep Plot (1:2)</button>
+          <button type="button" id="preset-irregular" class="preset-btn" data-preset="irregular">Tapered / Irregular</button>
+        </div>
+        <p class="helper-text" id="preset-hint">Drag corner handles or edges directly on the grid, or enter Length &amp; Width below.</p>
+      </div>
+
+      <div class="step-2-grid">
+        <!-- Plot Canvas -->
+        <div class="form-card canvas-card">
+          <h3>Interactive Plot Grid <span class="grid-legend">(Major 10 ft / Minor 5 ft)</span></h3>
+          <div id="plot-canvas-container"></div>
+        </div>
+
+        <div class="step-2-controls">
+          <!-- Length & Width Controls -->
+          <div class="form-card">
+            <h3>Plot Dimensions (ft)</h3>
+            <div class="dimension-inputs">
+              <div class="dimension-group">
+                <label for="length-input">Length (ft) <span id="length-ftin" class="dim-ftin"></span></label>
+                <input type="text" inputmode="decimal" id="length-input" aria-label="Length in feet">
+                <input type="range" id="length-slider" min="15" max="200" step="0.5" aria-label="Length slider">
+              </div>
+              <div class="dimension-group">
+                <label for="width-input">Width (ft) <span id="width-ftin" class="dim-ftin"></span></label>
+                <input type="text" inputmode="decimal" id="width-input" aria-label="Width in feet">
+                <input type="range" id="width-slider" min="15" max="200" step="0.5" aria-label="Width slider">
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Area Match Meter -->
+          <div class="area-match-panel">
+            <div class="area-match-header">
+              <h4>Live Area Match Meter</h4>
+              <span class="area-status badge-warning" id="area-status">Adjusting...</span>
+            </div>
+            <div class="area-stats-grid">
+              <div class="area-stat-box">
+                <span class="area-stat-label">Target Area</span>
+                <span class="area-stat-main" id="target-area">0 Sq.Ft</span>
+                <span class="area-stat-sub" id="target-area-cents">0.00 Cents</span>
+              </div>
+              <div class="area-stat-box">
+                <span class="area-stat-label">Current Shape Area</span>
+                <span class="area-stat-main" id="current-area">0 Sq.Ft</span>
+                <span class="area-stat-sub" id="current-area-cents">0.00 Cents</span>
+              </div>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" id="area-progress" style="width: 0%;"></div>
+            </div>
+            <p class="area-diff-text" id="area-diff-text">Difference: 0%</p>
+            <button type="button" id="btn-autofit" class="btn-secondary autofit-btn">Auto-Fit to Exact Area</button>
+          </div>
+
+          <button type="button" id="btn-to-step3" class="btn-primary" disabled>Generate 2D Floor Plan →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- STEP 3: 2D Floor Plan & Architect Brief                 -->
+    <!-- ======================================================= -->
+    <section id="step-3" class="step-container hidden fade-in">
+      <button type="button" class="btn-back" data-goto="2">← Back to Plot Shape</button>
+
+      <div class="step-3-layout">
+        <!-- Left / Top: 2D Floor Plan Column -->
+        <div class="plan-column">
+          <div class="form-card plan-controls-card" id="plan-viewer-card">
+            <div class="plan-toolbar">
+              <div class="toolbar-group">
+                <span class="toolbar-label">Layout Option</span>
+                <div class="view-controls">
+                  <button type="button" class="option-toggle-btn active" data-option="0">Option A</button>
+                  <button type="button" class="option-toggle-btn" data-option="1">Option B</button>
+                </div>
+              </div>
+              <div class="toolbar-group">
+                <span class="toolbar-label">Viewer Controls</span>
+                <div class="zoom-controls">
+                  <button type="button" id="btn-zoom-in" class="zoom-btn" title="Zoom In">Zoom In (+)</button>
+                  <button type="button" id="btn-zoom-out" class="zoom-btn" title="Zoom Out">Zoom Out (−)</button>
+                  <button type="button" id="btn-zoom-reset" class="zoom-btn" title="Reset Zoom">Reset</button>
+                  <button type="button" id="btn-fullscreen" class="zoom-btn" title="Toggle Fullscreen">Fullscreen</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Floor Tabs -->
+            <div id="floor-tabs" class="floor-tabs" role="tablist"></div>
+
+            <!-- SVG Floor Plan Viewport -->
+            <div id="plan-viewport" class="plan-viewport">
+              <div id="plan-container" class="plan-container"></div>
+            </div>
+
+            <!-- Clean Bottom Plan Summary Bar -->
+            <div id="plan-summary-bar" class="plan-summary-bar"></div>
+          </div>
+
+          <!-- Export Buttons -->
+          <div class="form-card export-card">
+            <h3>Export Floor Plan &amp; Architect Brief</h3>
+            <div class="export-buttons">
+              <button type="button" id="btn-export-svg" class="export-btn">Download Floor Plan (SVG)</button>
+              <button type="button" id="btn-export-png" class="export-btn">Download Floor Plan (PNG)</button>
+              <button type="button" id="btn-export-pdf" class="export-btn export-btn-pdf">Download Architect Brief (PDF)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right / Bottom: Planning Knowledge Panel -->
+        <div class="panels-column">
+          <!-- Space Efficiency Summary -->
+          <div class="form-card" id="summary-panel">
+            <h3>Space Efficiency Summary</h3>
+            <div class="summary-grid" id="summary-grid"></div>
+          </div>
+
+          <!-- Construction Cost Estimate -->
+          <div class="cost-panel" id="cost-panel">
+            <h3>Construction Cost Estimate</h3>
+            <div id="cost-content"></div>
+          </div>
+
+          <!-- Sunlight, Ventilation & Practical Notes -->
+          <div class="notes-panel" id="notes-panel">
+            <h3>Sunlight, Ventilation &amp; Practical Notes</h3>
+            <div id="notes-list"></div>
+          </div>
+
+          <!-- 5 Smart Questions to Ask Your Architect -->
+          <div class="questions-panel" id="questions-panel">
+            <h3>5 Smart Questions to Ask Your Architect</h3>
+            <ol id="questions-list" class="questions-ol"></ol>
+          </div>
+
+          <!-- Disclaimer Banner -->
+          <div class="disclaimer-banner">
+            <strong>Disclaimer:</strong> Educational concept plan only. Not a structural drawing or municipal approval plan. Consult a licensed architect or structural engineer before construction.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+</body>
+</html>
